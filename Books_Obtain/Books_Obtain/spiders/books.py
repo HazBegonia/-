@@ -22,7 +22,7 @@ class BooksSpider(scrapy.Spider):
 
     def parse_detail(self, response):
         book_item =  BooksObtainItem()
-        book_item['name'] = response.css('.active::text').get()
+        book_item['book_name'] = response.css('.active::text').get()
         book_item['price'] = float(response.css('.price_color ::text').get()[1::])
         book_item['subject'] = response.css('.breadcrumb li:nth-child(3) a::text').get()
         stock_str = response.xpath('//table[@class="table table-striped"]//tr[th[contains(., "Availability")]]/td/text()').get()

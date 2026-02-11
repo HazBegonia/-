@@ -28,14 +28,14 @@ class BooksObtainPipeline:
         
     def process_item(self, item, spider):
         sql = """
-            insert into book_info (name, price, subject, stock, reviewers, upc, description, rating, image)
+            insert into book_info (book_name, price, subject, stock, reviewers, upc, description, rating, image)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-            on duplicate key update name = values(name), price = values(price), stock = values(stock)
+            on duplicate key update book_name = values(book_name), price = values(price), stock = values(stock)
         """
         try:
             self.cursor.execute(
                 sql, (
-                    item['name'], item['price'], item['subject'],
+                    item['book_name'], item['price'], item['subject'],
                     item['stock'], item['reviewers'], item['UPC'],
                     item['description'], item['rating'], item['image']
                 )
