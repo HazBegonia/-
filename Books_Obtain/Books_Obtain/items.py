@@ -12,7 +12,7 @@ class BooksObtainItem(scrapy.Item):
     price = scrapy.Field()
     subject = scrapy.Field()
     stock = scrapy.Field()
-    rank = scrapy.Field()
+    rating = scrapy.Field()
     description = scrapy.Field()
     UPC = scrapy.Field()
     reviewers = scrapy.Field()

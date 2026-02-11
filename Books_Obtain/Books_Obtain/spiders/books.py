@@ -30,15 +30,15 @@ class BooksSpider(scrapy.Spider):
         book_item['reviewers'] = int(response.xpath('//table[@class="table table-striped"]//tr[th[contains(., "Number of reviews")]]/td/text()').get())
         book_item['UPC'] = response.xpath('//table[contains(@class, "table-striped")]//tr[1]/td/text()').get()
         book_item['description'] = response.xpath('//*[@id="content_inner"]/article/p/text()').get()
-        rank_str = response.xpath('//*[@id="content_inner"]/article/div[1]/div[2]/p[3]/@class').get()
-        rank_dict = {   
+        rating_str = response.xpath('//*[@id="content_inner"]/article/div[1]/div[2]/p[3]/@class').get()
+        rating_dict = {   
             'One': 1,
             'Two': 2,
             'Three': 3,
             'Four': 4,
             'Five': 5
         }
-        book_item['rank'] = rank_dict[rank_str.split()[1]]
+        book_item['rating'] = rating_dict[rating_str.split()[1]]
         img_src = response.xpath('//*[@id="product_gallery"]/div/div/div/img/@src').get()
         book_item['image'] = response.urljoin(img_src)
         print(book_item)
