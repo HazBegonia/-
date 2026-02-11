@@ -10,7 +10,7 @@ class BooksSpider(scrapy.Spider):
     start_urls = ["https://books.toscrape.com/index.html"]
 
     def start_requests(self):
-        for i in range(1, 2):
+        for i in range(1, 51):
             yield scrapy.Request(f"https://books.toscrape.com/catalogue/page-{i}.html", callback = self.parse)
 
     def parse(self, response):
