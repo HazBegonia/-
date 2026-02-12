@@ -87,7 +87,7 @@ export default {
                 xhrFields: { withCredentials: true }, 
                 success(resp) {
                     alert("登录成功！");
-                    router.push({ name: 'home' }); // 假设你以后会有个首页叫home
+                    router.push({ name: 'home' });
                 },
                 error() {
                     error_message.value = "登录失败，请检查账号密码或验证码"
@@ -95,7 +95,6 @@ export default {
             });
         }
 
-        // 注册逻辑 (对应你Django的 8000 端口)
         const register = () => {
             error_message.value = ''
             $.ajax({
@@ -104,12 +103,12 @@ export default {
                 data: {
                     username: registerForm.username,
                     password: registerForm.password,
-                    user_captcha: registerForm.captcha // 传给后端
+                    user_captcha: registerForm.captcha
                 },
-                xhrFields: { withCredentials: true }, // 必须加，否则拿不到Session里的验证码
+                xhrFields: { withCredentials: true }, 
                 success(resp) {
                     alert("注册成功！");
-                    toggleForm(); // 注册成功切回登录
+                    toggleForm();
                 },
                 error(err) {
                     error_message.value = err.responseJSON ? err.responseJSON.msg : "注册失败";
