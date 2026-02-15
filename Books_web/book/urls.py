@@ -23,4 +23,5 @@ urlpatterns = [
     path('captcha/', views.get_captcha), 
     path('api/login/', views.login_api),
     path('api/register/', views.register_api),
+    path('search/', include('search.urls')),
 ]
