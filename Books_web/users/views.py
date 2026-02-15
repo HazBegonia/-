@@ -51,6 +51,7 @@ def register_api(request):
         )
         return JsonResponse({"msg": "注册成功！"})
     
+# users/views.py
 @csrf_exempt
 def login_api(request):
     username = request.POST.get('username')
@@ -59,6 +60,7 @@ def login_api(request):
     user = user_info.objects.filter(user_name = username).first()
 
     if user and check_password(password, user.password):
+        request.session['user_id'] = user.id 
         request.session['user_name'] = username
         return JsonResponse({"msg": "登录成功"})
     else:

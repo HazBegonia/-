@@ -49,29 +49,26 @@ export default {
     const query = ref('');
     const results = ref([]);
 
-    const performSearch = () => {
-      const keyword = query.value.trim();
-      if (!keyword) return;
+const performSearch = () => {
+  const keyword = query.value.trim();
+  if (!keyword) return;
 
-      $.ajax({
-        // 使用 127.0.0.1 确保本地回环测试最稳定
-        url: "http://127.0.0.1:8000/search/api/suggest/", 
-        type: "get",
-        data: { q: keyword },
-        success(resp) {
-          if (resp.data && resp.data.length > 0) {
-            results.value = resp.data;
-          } else {
-            alert("未找到匹配的书籍");
-            results.value = [];
-          }
-        },
-        error(err) {
-          console.error("连接报错:", err);
-          alert("服务器连接失败，请确认后端 8000 端口已启动且数据库有数据。");
-        }
-      });
-    };
+  $.ajax({
+    url: "http://127.0.0.1:8000/search/api/suggest/", 
+    type: "get",
+    data: { q: keyword },
+    // 核心新增：必须发送凭证（Cookie），否则后端拿不到 session 里的 user_id
+    xhrFields: { withCredentials: true }, 
+    success(resp) {
+      if (resp.data && resp.data.length > 0) {
+        results.value = resp.data;
+      }
+    },
+    error(err) {
+      console.error("搜索失败:", err);
+    }
+  });
+};
 
     return { query, results, performSearch };
   }

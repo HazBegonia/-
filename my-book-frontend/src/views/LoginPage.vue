@@ -20,9 +20,9 @@
                     
                     <div class="captcha-container">
                         <input v-model="registerForm.captcha" type="text" placeholder="验证码" class="captcha-input">
-                        <img src="http://192.168.0.105:8000/captcha/"
+                        <img src="http://127.0.0.1:8000/captcha/"
                             class="captcha-img"
-                            onclick="this.src='http://localhost:8000/captcha/?'+Math.random()">
+                            onclick="this.src='http://127.0.0.1:8000/captcha/?'+Math.random()">
                     </div>
                 </div>
                 <div class="btn-box">
@@ -42,9 +42,9 @@
                     
                     <div class="captcha-container">
                         <input v-model="loginForm.captcha" type="text" placeholder="验证码" class="captcha-input">
-                        <img src="http://192.168.0.105:8000/captcha/"
+                        <img src="http://127.0.0.1:8000/captcha/"
                             class="captcha-img"
-                            onclick="this.src='http://192.168.0.105:8000/captcha/?'+Math.random()">
+                            onclick="this.src='http://127.0.0.1:8000/captcha/?'+Math.random()">
                     </div>
                 </div>
                 <div class="btn-box">
@@ -77,7 +77,7 @@ export default {
         const login = () => {
             error_message.value = ''
             $.ajax({
-                url: "http://192.168.0.105:8000/api/login/",
+                url: "http://127.0.0.1:8000/api/login/",
                 type: "post",
                 data: {
                     username: loginForm.username,
@@ -98,7 +98,7 @@ export default {
         const register = () => {
             error_message.value = ''
             $.ajax({
-                url: "http://192.168.0.105:8000/api/register/",
+                url: "http://127.0.0.1:8000/api/register/",
                 type: "post",
                 data: {
                     username: registerForm.username,
