@@ -1,23 +1,18 @@
+// src/store/index.js
 import { createStore } from 'vuex'
 
 export default createStore({
   state: {
     user: {
-      pulling_info: false,
+      username: "",
       is_login: false
     }
   },
   mutations: {
-    updateToken(state, token) {
-      state.token = token;
-    },
-    updatePullingInfo(state, pulling_info) {
-      state.user.pulling_info = pulling_info;
+    // 这个名字必须和 LoginPage.vue 里的 commit 名字一致
+    updateUser(state, user) {
+      state.user.username = user.username;
+      state.user.is_login = user.is_login;
     }
-  },
-  actions: {
-    // 暂时留空，保证你的 LoginPage.vue 调用时不崩溃
-    login(context, data) { },
-    getinfo(context, data) { }
   }
 })

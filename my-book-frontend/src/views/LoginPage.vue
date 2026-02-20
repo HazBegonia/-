@@ -18,12 +18,10 @@
                     <input v-model="registerForm.password" type="password" placeholder="密码">
                     <input v-model="registerForm.confirmedPassword" type="password" placeholder="确认密码">
                     
-                    <div class="captcha-container">
-                        <input v-model="registerForm.captcha" type="text" placeholder="验证码" class="captcha-input">
-                        <img src="http://127.0.0.1:8000/captcha/"
-                            class="captcha-img"
-                            onclick="this.src='http://127.0.0.1:8000/captcha/?'+Math.random()">
-                    </div>
+                <div class="captcha-container">
+                    <input v-model="registerForm.captcha" type="text" placeholder="验证码" class="captcha-input">
+                    <img :src="captchaUrl" class="captcha-img" @click="refreshCaptcha">
+                </div>
                 </div>
                 <div class="btn-box">
                     <button @click="register">注册</button>
@@ -40,12 +38,10 @@
                     <input v-model="loginForm.username" type="text" placeholder="用户名">
                     <input v-model="loginForm.password" type="password" placeholder="密码">
                     
-                    <div class="captcha-container">
-                        <input v-model="loginForm.captcha" type="text" placeholder="验证码" class="captcha-input">
-                        <img src="http://127.0.0.1:8000/captcha/"
-                            class="captcha-img"
-                            onclick="this.src='http://127.0.0.1:8000/captcha/?'+Math.random()">
-                    </div>
+                <div class="captcha-container">
+                    <input v-model="loginForm.captcha" type="text" placeholder="验证码" class="captcha-input">
+                    <img :src="captchaUrl" class="captcha-img" @click="refreshCaptcha" title="点击刷新">
+                </div>
                 </div>
                 <div class="btn-box">
                     <button @click="login">登录</button>
@@ -61,7 +57,7 @@
 import { useStore } from 'vuex'
 import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import $ from 'jquery'
+import axios from 'axios' // 必须导入
 
 export default {
     name: 'LoginPage',
@@ -70,58 +66,85 @@ export default {
         const router = useRouter()
         const isLoginForm = ref(true)
         const error_message = ref('')
-        const loginForm = reactive({ username: '', password: '', captcha: '' })
-        const registerForm = reactive({ username: '', password: '', confirmedPassword: '' })
+        
+        // 1. 统一管理验证码地址
+        const captchaUrl = ref('http://127.0.0.1:8000/api/users/captcha/') 
 
-        // 登录逻辑
-        const login = () => {
-            error_message.value = ''
-            $.ajax({
-                url: "http://127.0.0.1:8000/api/login/",
-                type: "post",
-                data: {
+        const loginForm = reactive({ username: '', password: '', captcha: '' })
+        const registerForm = reactive({ username: '', password: '', confirmedPassword: '', captcha: '' })
+
+        // 2. 刷新验证码逻辑
+        const refreshCaptcha = () => {
+            captchaUrl.value = 'http://127.0.0.1:8000/api/users/captcha/?t=' + Math.random()
+        }
+
+        // 3. 登录逻辑 (参数补全)
+        // LoginPage.vue 中的 login 函数
+        const login = async () => {
+            error_message.value = "";
+            try {
+                console.log("正在尝试登录...", loginForm.username);
+                const resp = await axios.post('http://127.0.0.1:8000/api/users/login/', {
                     username: loginForm.username,
                     password: loginForm.password,
                     user_captcha: loginForm.captcha
-                },
-                xhrFields: { withCredentials: true }, 
-                success(resp) {
-                    alert("登录成功！");
-                    router.push({ name: 'home' });
-                },
-                error() {
-                    error_message.value = "登录失败，请检查账号密码或验证码"
-                }
-            });
-        }
+                });
 
-        const register = () => {
+                // 这里的判断必须和后端返回的 msg 完全一致
+                if (resp.data.msg === "登录成功") {
+                    console.log("后端验证通过，准备存储数据...");
+                    
+                    // 1. 存储用户名
+                    localStorage.setItem('username', loginForm.username);
+                    
+                    // 2. 更新 Vuex 状态
+                    store.commit('updateUser', {
+                        username: loginForm.username,
+                        is_login: true
+                    });
+
+                    console.log("数据存储完毕，准备跳转...");
+                    // 3. 核心修复：改用路径跳转，避免 name 不匹配的问题
+                    // 确保你的路由配置中路径是 /home/recommend
+                    await router.push('/home/recommend'); 
+                } else {
+                    error_message.value = resp.data.msg;
+                }
+            } catch (err) {
+                console.error("前端逻辑崩溃或网络错误:", err);
+                refreshCaptcha();
+                // 如果后端返回了错误码，显示后端的 msg；否则显示错误对象
+                error_message.value = err.response?.data?.msg || "前端页面逻辑错误，请检查控制台";
+            }
+        };
+
+        // 4. 注册逻辑 (统一使用 axios)
+        const register = async () => {
             error_message.value = ''
-            $.ajax({
-                url: "http://127.0.0.1:8000/api/register/",
-                type: "post",
-                data: {
+            if (registerForm.password !== registerForm.confirmedPassword) {
+                error_message.value = "两次密码不一致"
+                return
+            }
+            try {
+                const resp = await axios.post("http://127.0.0.1:8000/api/users/register/", {
                     username: registerForm.username,
                     password: registerForm.password,
-                    user_captcha: registerForm.captcha
-                },
-                xhrFields: { withCredentials: true }, 
-                success(resp) {
-                    alert("注册成功！");
-                    toggleForm();
-                },
-                error(err) {
-                    error_message.value = err.responseJSON ? err.responseJSON.msg : "注册失败";
-                }
-            });
+                    user_captcha: registerForm.captcha // 修正绑定后这里就有值了
+                });
+                alert("注册成功！");
+                toggleForm();
+            } catch (err) {
+                refreshCaptcha();
+                error_message.value = err.response?.data?.msg || "注册失败";
+            }
         }
 
+        // --- 保持原本的 UI 计算属性不变 ---
         const preBoxStyles = computed(() => ({
             transform: `translateX(${isLoginForm.value ? 0 : '100%'})`,
             backgroundColor: isLoginForm.value ? 'rgb(139,232,145)' : 'rgb(173,208,216)'
         }))
 
-        // 修正：确保路径和你的 assets 结构完全一致
         const currentImage = computed(() =>
             isLoginForm.value
                 ? require('@/assets/images/icon/login.png')
@@ -131,17 +154,19 @@ export default {
         const toggleForm = () => {
             isLoginForm.value = !isLoginForm.value;
             error_message.value = '';
+            refreshCaptcha(); 
         }
 
         return {
-            isLoginForm, loginForm, registerForm, error_message,
-            preBoxStyles, currentImage, toggleForm, login, register
+            isLoginForm, loginForm, registerForm, error_message, captchaUrl,
+            preBoxStyles, currentImage, toggleForm, login, register, refreshCaptcha
         }
     }
 }
 </script>
+
 <style scoped>
-/* 背景容器 */
+/* 这里 100% 保留你之前的 CSS 代码，不做任何改动 */
 .login-wrapper {
     min-height: 100vh;
     width: 100vw;
@@ -197,8 +222,6 @@ export default {
 .title-box { height: 150px; display: flex; align-items: flex-end; margin-bottom: 30px; }
 .title-box h1 { color: #fff; text-shadow: 2px 2px 4px rgba(0,0,0,0.1); }
 
-/* --- 对齐核心代码开始 --- */
-
 .input-box {
     display: flex;
     flex-direction: column;
@@ -206,7 +229,6 @@ export default {
     width: 100%;
 }
 
-/* 1. 统一定义所有输入框基础样式 */
 input {
     height: 40px;
     border: none;
@@ -214,38 +236,34 @@ input {
     padding: 0 15px;
     background: rgba(255,255,255,0.8);
     outline: none;
-    box-sizing: border-box; /* 确保 padding 不会撑大盒子 */
+    box-sizing: border-box; 
 }
 
-/* 2. 强制设置用户名、密码框、以及验证码容器的宽度为 75% */
 .input-box > input, 
 .captcha-container {
     width: 75% !important; 
     margin-bottom: 20px;
 }
 
-/* 3. 验证码内部布局 */
 .captcha-container {
     display: flex;
-    justify-content: space-between; /* 左右两端对齐 */
+    justify-content: space-between; 
     align-items: center;
 }
 
 .captcha-input {
-    width: 55% !important; /* 占据容器左侧 55% */
-    margin-bottom: 0 !important; /* 取消底部边距，让它在容器内垂直居中 */
+    width: 55% !important; 
+    margin-bottom: 0 !important; 
 }
 
 .captcha-img {
-    width: 40% !important; /* 占据容器右侧 40% */
+    width: 40% !important; 
     height: 40px;
     border-radius: 20px;
     background: #fff;
     cursor: pointer;
     object-fit: fill;
 }
-
-/* --- 对齐核心代码结束 --- */
 
 .btn-box { margin-top: 10px; display: flex; align-items: center; gap: 10px; }
 button {

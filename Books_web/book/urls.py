@@ -20,8 +20,7 @@ from users import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('captcha/', views.get_captcha), 
-    path('api/login/', views.login_api),
-    path('api/register/', views.register_api),
+    path('api/users/', include('users.urls')),
     path('search/', include('search.urls')),
+    path('api/recommend/', include('recommendation.urls')),
 ]
