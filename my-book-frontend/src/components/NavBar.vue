@@ -14,6 +14,31 @@
   </nav>
 </template>
 
+<script setup>
+import { computed, onMounted } from 'vue';
+import { useStore } from 'vuex';
+
+const store = useStore();
+
+// 1. 使用计算属性从 Vuex 获取用户名
+// 这样当 store 里的数据变化时，这里的 username 会自动跟着变
+const username = computed(() => {
+  return store.state.user.username || "访客"; 
+});
+
+// 2. 解决刷新页面数据丢失的问题
+onMounted(() => {
+  const savedName = localStorage.getItem('username');
+  if (savedName && !store.state.user.username) {
+    // 如果本地有存用户名，但 Vuex 里是空的（说明刷新了），就把它补回去
+    store.commit('updateUser', {
+      username: savedName,
+      is_login: true
+    });
+  }
+});
+</script>
+
 <script>
 import { computed } from 'vue';
 import { useStore } from 'vuex';

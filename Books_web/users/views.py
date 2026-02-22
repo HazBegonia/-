@@ -93,3 +93,41 @@ def login_api(request):
                 "username": username,
                 "user_id": user.id
             }, status=200)
+        
+@csrf_exempt
+def change_password_api(request):
+    if request.method == 'POST':
+        try:
+            # 1. 尝试解析数据
+            try:
+                data = json.loads(request.body)
+            except json.JSONDecodeError:
+                return JsonResponse({"msg": "请求格式错误，非有效JSON"}, status=400)
+
+            username = data.get('username')
+            old_password = data.get('old_password')
+            new_password = data.get('new_password')
+
+            # 2. 校验参数是否存在
+            if not all([username, old_password, new_password]):
+                return JsonResponse({"msg": "用户名或密码不能为空"}, status=400)
+
+            # 3. 查找用户
+            user = user_info.objects.filter(user_name=username).first()
+            if not user:
+                return JsonResponse({"msg": "用户不存在"}, status=404)
+
+            # 4. 校验旧密码
+            if not check_password(old_password, user.password):
+                return JsonResponse({"msg": "原密码有误！"}, status=400)
+
+            # 5. 更新密码
+            user.password = make_password(new_password)
+            user.save()
+            return JsonResponse({"msg": "修改成功"})
+
+        except Exception as e:
+            # 这里会打印具体的报错类型，比如 TypeError 或 AttributeError
+            import traceback
+            print(traceback.format_exc()) # 在终端打印完整堆栈信息
+            return JsonResponse({"msg": "系统错误", "error": str(e)}, status=500)

@@ -1,9 +1,11 @@
-use book_db;
+USE book_db;
 
-create table if not exists `search_history` (
-	`id` int auto_increment primary key,
-    `user_name` varchar(20) not null comment '对应 user_info 表的 id',
-	`browse_books` varchar(255) not null comment '用户浏览的书籍',
-    `search_time` timestamp default current_timestamp comment '搜索时间',
-    constraint `fk_user_history` foreign key (`user_name`) references `user_info` (`user_name`) on delete cascade
-) engine = InnoDB default charset = utf8mb4 comment '用户搜索历史记录表';
+CREATE TABLE `search_history` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `user_id` INT NOT NULL COMMENT '由 Django ForeignKey(user_info) 生成',
+    `username` VARCHAR(20) DEFAULT NULL COMMENT '存储冗余用户名',
+    `browse_books` VARCHAR(255) NOT NULL,
+    `search_time` DATETIME(6) NOT NULL,
+    -- 建立物理外键关联到 user_info 的 id
+    CONSTRAINT `fk_user_id` FOREIGN KEY (`user_id`) REFERENCES `user_info` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
